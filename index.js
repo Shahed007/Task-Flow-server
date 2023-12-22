@@ -22,13 +22,25 @@ async function run() {
     const taskFlowDB = client.db("taskFlowDB");
     const taskCollection = taskFlowDB.collection("taskCollection");
 
-    app.post("task", async (req, res) => {
+    app.post("/task", async (req, res) => {
       try {
         const task = req.body;
+        console.log(task);
         const result = await taskCollection.insertOne(task);
         res.send(result);
       } catch (error) {
         res.status(200).send({ message: "internal server error" });
+      }
+    });
+
+    app.get("/tasks", async (req, res) => {
+      try {
+        const email = req.query.email;
+        console.log(email);
+        const tasks = await taskCollection.find({ email: email }).toArray();
+        res.send(tasks);
+      } catch (error) {
+        res.status(500).send({ message: "internal server error" });
       }
     });
   } finally {
