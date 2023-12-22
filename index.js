@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster1.77jbz4j.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
@@ -40,6 +40,43 @@ async function run() {
         const tasks = await taskCollection.find({ email: email }).toArray();
         res.send(tasks);
       } catch (error) {
+        res.status(500).send({ message: "internal server error" });
+      }
+    });
+
+    app.put("/task/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        console.log(id);
+        const status = req.body;
+        const filter = { _id: new ObjectId(id) };
+
+        const options = { upsert: true };
+
+        const updateDoc = {
+          $set: {
+            ...status,
+          },
+        };
+
+        const result = await taskCollection.updateOne(
+          filter,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ message: "internal server error" });
+      }
+    });
+
+    app.delete("/task/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await taskCollection.deleteOne(query);
+        res.send(result);
+      } catch (err) {
         res.status(500).send({ message: "internal server error" });
       }
     });
